@@ -2,5 +2,6 @@
 .vscode/
 bin/
 obj/
-PublishProfiles/
+_site/
 *.csproj.user
+launchSettings.json
