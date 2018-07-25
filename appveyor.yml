@@ -16,11 +16,11 @@ test_script:
 artifacts:
   - path: 'src/FlipLeaf.Engine/**/*.nupkg'
 deploy:
-  - provider: nuget
-    on:
-      branch: master
-    server: https://www.nuget.org/api/v2/package
+  - provider: NuGet
+    server:
     api_key:
       secure: UA8pIm17B2y3CMejSh6Q4LWRpab+1oTeMD2h6R1flDlcwKmHfxdcvPId0++YNGRi
     skip_symbols: true
     artifact: /.*\.nupkg/  
+    on:
+      branch: master
