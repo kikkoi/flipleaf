@@ -17,11 +17,6 @@ namespace FlipLeaf
             // default action : generate static site
             app.OnExecute(async () =>
             {
-                // prepare logger
-                var logger = new LoggerConfiguration()
-                    .WriteTo.Console()
-                    .CreateLogger();
-
                 // load config
                 var site = inputDir.HasValue() ? new StaticSite(inputDir.Value()) : new StaticSite();
                 site.LoadConfiguration();
@@ -51,7 +46,7 @@ namespace FlipLeaf
                 );
 
                 // generate
-                await site.GenerateAsync(logger);
+                await site.GenerateAsync();
             });
 
 

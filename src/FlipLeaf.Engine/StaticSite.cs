@@ -39,18 +39,14 @@ namespace FlipLeaf
             Configuration = config;
         }
 
-        public async Task GenerateAsync(Serilog.ILogger log)
+        public async Task GenerateAsync()
         {
-            log.Information("Beginning rendering {SourceDir}", InputDirectory);
-
             foreach (var pipeline in Pipelines)
             {
                 await pipeline
                     .ExecuteAsync(this)
                     .ConfigureAwait(false);
             }
-
-            log.Information("Rendering complete");
         }
 
     }
