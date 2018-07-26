@@ -1,48 +1,41 @@
-﻿#r "FlipLeaf.Engine"
+﻿#! "netcoreapp2.1"
+#r "_bin/FlipLeaf.Engine.dll"
+#r "_bin/Markdig.dll"
+#load "FlipLeaf.Scripting.csx"
 
-using System;
 using FlipLeaf;
+using FlipLeaf.Core;
+using FlipLeaf.Core.Text;
+using static FlipLeafGenerator;
 
+Sources.Add("content", s => new FlipLeaf.Core.Inputs.FileInputSource(s.InputDirectory) { Exclude = new[] { "README.md" } });
+Sources.Add("static", s => new FlipLeaf.Core.Inputs.FileInputSource(s.GetFullRootPath("_static")));
 
-//var engine = new FlipLeaf.FlipContext();
-//using System.Threading.Tasks;
+Pipelines.Add("content", site =>
+{
+    var parser = new FlipLeaf.Core.Text.MarkdigSpecifics.MarkdigParser();
+    parser.Use(new FlipLeaf.Core.Text.MarkdigSpecifics.WikiLinkExtension() { Extension = ".md" });
+    parser.Use(new FlipLeaf.Core.Text.MarkdigSpecifics.CustomLinkInlineRendererExtension(site));
 
-//var site = Site.Prepare();
+    return new FlipLeaf.Core.Pipelines.TextTransformPipeline(
+        i => i.Extension == ".md",
+        // read
+        new FlipLeaf.Core.Text.ReadContentMiddleware(),
+        // prepare
+        new FlipLeaf.Core.Text.ITextMiddleware[] {
+            new FlipLeaf.Core.Text.YamlHeaderMiddleware(new FlipLeaf.Core.Text.YamlParser())
+        },
+        // transform
+        new FlipLeaf.Core.Text.ITextMiddleware[] {
+            new FlipLeaf.Core.Text.YamlHeaderMiddleware(new FlipLeaf.Core.Text.YamlParser()),
+            new FlipLeaf.Core.Text.LiquidMiddleware(new FlipLeaf.Core.Text.FluidLiquid.FluidParser(site)),
+            new FlipLeaf.Core.Text.MarkdownMiddleware(parser)
+        },
+        // write
+        new FlipLeaf.Core.Text.WriteContentMiddleware() { Extension = ".html" }
+    );
+});
 
-// markdown processing
-var parser = new FlipLeaf.Core.Text.MarkdigSpecifics.MarkdigParser();
-parser.Use<FlipLeaf.Core.Text.MarkdigSpecifics.WikiLinkExtension>();
-//site.Pipelines.Add(
-//    new Core.Pipelines.TransformPipeline(
-//        new Core.Inputs.FileInputSource(new[] { "*.md" }, true),
-//        new Core.Transforms.TextTransform(
-//            new Core.Text.ReadContentMiddleware(),
-//            new Core.Text.YamlHeaderMiddleware(new Core.Text.YamlParser()),
-//            new Core.Text.LiquidMiddleware(new Core.Text.FluidLiquid.FluidParser(engine.Configuration, flipContext)),
-//            new Core.Text.MarkdownMiddleware(parser),
-//            new Core.Text.WriteContentMiddleware() { Extension = ".html" }
-//        )
-//    )
-//);
+Pipelines.Add("static", s => new FlipLeaf.Core.Pipelines.CopyPipeline());
 
-//// static files
-//site.Pipelines.Add(
-//    new Core.Pipelines.TransformPipeline(
-//        new Core.Inputs.FileInputSource("_static", new[] { "*" }, true),
-//        new Core.Transforms.CopyTransform()
-//    )
-//);
-
-//site.Generate();
-
-//await engine.RenderAllAsync().ConfigureAwait(false);
-
-var site = new Site();
-
-site.With
-    .Files("test");
-
-site.Generate();
-
-
-Console.WriteLine("Hello World!");
+await Generate(Args.ToArray());
