@@ -1,0 +1,67 @@
+﻿using System.IO;
+
+using Xunit;
+
+namespace FlipLeaf.Core.Text
+{
+    public class YamlConfigParserTests
+    {
+        [Fact]
+        public void Empty_Config_Should_Result_In_Default_Config()
+        {
+            // arrange
+            var reader = new StringReader(string.Empty);
+
+            // act
+            var config = new YamlConfigParser().ParseConfig(reader);
+
+            // assert
+            Assert.Equal(SiteConfiguration.Default.BasePath, config.BasePath);
+            Assert.Equal(SiteConfiguration.Default.LayoutDir, config.LayoutDir);
+            Assert.Equal(SiteConfiguration.Default.OutputDir, config.OutputDir);
+            Assert.Equal(SiteConfiguration.Default.Title, config.Title);
+        }
+
+        [Fact]
+        public void Empty_NewLine_Config_Should_Result_In_Default_Config()
+        {
+            // arrange
+            var reader = new StringReader("\n");
+
+            // act
+            var config = new YamlConfigParser().ParseConfig(reader);
+
+            // assert
+            Assert.Equal(SiteConfiguration.Default.BasePath, config.BasePath);
+            Assert.Equal(SiteConfiguration.Default.LayoutDir, config.LayoutDir);
+            Assert.Equal(SiteConfiguration.Default.OutputDir, config.OutputDir);
+            Assert.Equal(SiteConfiguration.Default.Title, config.Title);
+        }
+
+        [Fact]
+        public void Read_BasePath_Config()
+        {
+            // arrange
+            var reader = new StringReader("basePath: test\n");
+
+            // act
+            var config = new YamlConfigParser().ParseConfig(reader);
+
+            // assert
+            Assert.Equal("test", config.BasePath);
+        }
+
+        [Fact]
+        public void Read_Title_Config()
+        {
+            // arrange
+            var reader = new StringReader("title: 'my title'\n");
+
+            // act
+            var config = new YamlConfigParser().ParseConfig(reader);
+
+            // assert
+            Assert.Equal("my title", config.Title);
+        }
+    }
+}

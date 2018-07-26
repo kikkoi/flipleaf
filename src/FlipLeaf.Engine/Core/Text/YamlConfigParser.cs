@@ -9,20 +9,30 @@ namespace FlipLeaf.Core.Text
 {
     public class YamlConfigParser
     {
-        public SiteConfiguration ParseConfig(string path)
+        private readonly Deserializer _deserializer;
+
+        public YamlConfigParser()
         {
-            var deserializer = new DeserializerBuilder()
+            _deserializer = new DeserializerBuilder()
                 .WithNamingConvention(new CamelCaseNamingConvention())
                 .Build();
+        }
 
+        public SiteConfiguration ParseConfig(string path)
+        {
             using (var file = File.OpenRead(path))
             using (var reader = new StreamReader(file))
             {
-                var parser = new Parser(reader);
-                parser.Expect<StreamStart>();
-
-                return deserializer.Deserialize<SiteConfiguration>(parser);
+                return ParseConfig(reader);
             }
+        }
+
+        public SiteConfiguration ParseConfig(TextReader configReader)
+        {
+            var parser = new Parser(configReader);
+            parser.Expect<StreamStart>();
+
+            return _deserializer.Deserialize<SiteConfiguration>(parser) ?? SiteConfiguration.Default;
         }
     }
 }
