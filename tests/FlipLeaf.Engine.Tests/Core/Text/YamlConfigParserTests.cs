@@ -39,10 +39,10 @@ namespace FlipLeaf.Core.Text
         }
 
         [Fact]
-        public void Read_BasePath_Config()
+        public void Read_BaseUrl_Config()
         {
             // arrange
-            var reader = new StringReader("basePath: test\n");
+            var reader = new StringReader("baseUrl: test\n");
 
             // act
             var config = new YamlConfigParser().ParseConfig(reader);

@@ -39,7 +39,12 @@ namespace FlipLeaf.Core.Text
                 return false;
             }
 
-            pageContext = (Dictionary<string, object>)ConvertDoc(doc);
+            pageContext = ConvertDoc(doc) as Dictionary<string, object>;
+
+            if (pageContext == null)
+            {
+                return false;
+            }
 
             if (!parser.Accept<DocumentStart>())
             {
