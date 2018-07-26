@@ -30,150 +30,46 @@ Another implementation could execute an external tool to optimize some files the
 ## Sample script
 
 ```
-#! "netcoreapp2.0"
-#r "nuget: FlipLeaf, 1.0.0"
+#! "netcoreapp2.1"
+#r "_bin/FlipLeaf.Engine.dll"
+#r "_bin/Markdig.dll"
+#load "FlipLeaf.Scripting.csx"
 
-using FlipLeaf.Scripting;
+using FlipLeaf;
+using FlipLeaf.Core;
+using FlipLeaf.Core.Text;
+using static FlipLeafGenerator;
 
-With
-	.Files("*.md")
-	.ReadContent()
-	.WithYamlHeader()
-	.AsLiquid()
-	.AsMarkdown()
-	.Write(".html");
-	
-With
-	.Files("*.md")
-	.ReadContent("for-pdf")
-	.WithYamlHeader()
-	.AsLiquid()
-	.AsMarkdown()
-	.WriteAsPdf();
+Sources.Add("content", s => new FlipLeaf.Core.Inputs.FileInputSource(s.InputDirectory) { Exclude = new[] { "README.md" } });
+Sources.Add("static", s => new FlipLeaf.Core.Inputs.FileInputSource(s.GetFullRootPath("_static")));
 
-With
-	.Folder("posts")
-	.Files("*.md")
-	.ReadContent()
-	.WithYamlHeader()
-	.AsLiquid()
-	.AsMarkdown()
-	.Write(".html");
-
-With
-	.Files("*.html")
-	.Copy();
-
-With
-	.Files("*.jpg|*.png|*.txt")
-	.Copy();
-
-Site.FlipLeaf();
-
-// API Sample
-
-class With
+Pipelines.Add("content", site =>
 {
-	WithFiles Files(string filter) => new WithFiles(filter);
-	WithFolder Folder(string name) => new WithFolder(name);
-}
+    var parser = new FlipLeaf.Core.Text.MarkdigSpecifics.MarkdigParser();
+    parser.Use(new FlipLeaf.Core.Text.MarkdigSpecifics.WikiLinkExtension() { Extension = ".md" });
+    parser.Use(new FlipLeaf.Core.Text.MarkdigSpecifics.CustomLinkInlineRendererExtension(site));
 
-class WithFiles : IInputSource, IInputSourceBuilder
-{
-	IEnumerable<IInput> Open();
-}
+    return new FlipLeaf.Core.Pipelines.TextTransformPipeline(
+        i => i.Extension == ".md",
+        // read
+        new FlipLeaf.Core.Text.ReadContentMiddleware(),
+        // prepare
+        new FlipLeaf.Core.Text.ITextMiddleware[] {
+            new FlipLeaf.Core.Text.YamlHeaderMiddleware(new FlipLeaf.Core.Text.YamlParser())
+        },
+        // transform
+        new FlipLeaf.Core.Text.ITextMiddleware[] {
+            new FlipLeaf.Core.Text.YamlHeaderMiddleware(new FlipLeaf.Core.Text.YamlParser()),
+            new FlipLeaf.Core.Text.LiquidMiddleware(new FlipLeaf.Core.Text.FluidLiquid.FluidParser(site)),
+            new FlipLeaf.Core.Text.MarkdownMiddleware(parser)
+        },
+        // write
+        new FlipLeaf.Core.Text.WriteContentMiddleware() { Extension = ".html" }
+    );
+});
 
-class WithFolder : IInputSource, IInputSourceBuilder
-{
-	IEnumerable<IInput> Open();
-}
+Pipelines.Add("static", s => new FlipLeaf.Core.Pipelines.CopyPipeline());
 
-static class InputSourceBuilderExtensions
-{
-	static CopyAction Copy(this IInputSourceBuilder @this);
-}
+await Generate(Args.ToArray());
 
-static class CopyAction : IPipelineBuilder
-{
-	public CopyAction(IInputSource source)
-	IPipeline Build()
-	{
-	
-	}
-}
-
-interface IFlipContext
-{
-	string InDir { get; }
-	string OutDir { get; }
-}
-
-interface IPipeline
-{
-	void Execute(IFlipContext ctx)
-}
-
-class TransformPipeline : IPipeline
-{
-	public TransformPipeline(IInputSource source, IInputTransform transform) { }
-	
-	public void Execute(IFlipContext ctx)
-	{
-		foreach(var input in source.Get(ctx))
-		{
-			transform.Execute(ctx, input);
-		}
-	}
-}
-
-interface IInputSource
-{
-	IEnumerable<IInput> Get(IFlipContext ctx);
-}
-
-
-class FileInputSource : IInputSource
-{
-	public FileInputSource(string subFolder, string pattern)
-	{
-	}
-	
-	public IEnumerable<IInput> Get(IFlipContext context)
-	{
-		var pathPattern = Path.Combine(context.InDir, subFolder, pattern);
-		
-		foreach(var file in Files.GetFiles(pathPattern))
-		{
-			return new FileInput(Path.Combine(subFolder, Path.GetFileName(file)));
-		}
-	}
-}
-
-class FileInput
-{
-	FileInput(string name)
-	string Name { get; }
-	Stream Open(IFlipContext ctx);
-}
-
-interface IInput
-{
-	string Name { get; }
-	Stream Open();
-}
-
-interfance IInputTransform
-{
-	void Transform(IFlipContext ctx, IInput input);
-}
-
-interface CopyTransform : IInputTransform
-{
-	public void Transform(IFlipContext ctx, IInput input)
-	{
-		var origin = Path.Combine(ctx.InDir, input.Name);
-		var destination = Path.Combine(ctx.OutDir, input.Name);
-		File.Copy(origin, destination, overwrite: true);
-	}
-}
 ```
