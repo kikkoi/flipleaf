@@ -1,43 +1,55 @@
-﻿using Markdig;
+﻿using System.IO;
+using Markdig;
+using Markdig.Renderers;
 
 namespace FlipLeaf.Core.Text.MarkdigSpecifics
 {
     public class MarkdigParser
     {
+        private readonly MarkdownPipelineBuilder _pipelineBuilder = new MarkdownPipelineBuilder();
+
         private MarkdownPipeline _pipeline;
 
         public MarkdigParser()
         {
         }
 
-        public MarkdownPipelineBuilder PipelineBuilder { get; } = new MarkdownPipelineBuilder();
-
         /// <summary>
         /// Adds the specified extension to the extensions collection.
         /// </summary>
-        public MarkdownPipelineBuilder Use<TExtension>() where TExtension : class, IMarkdownExtension, new()
+        public void Use<TExtension>() where TExtension : class, IMarkdownExtension, new()
         {
-            PipelineBuilder.Extensions.AddIfNotAlready<TExtension>();
-            return PipelineBuilder;
+            _pipelineBuilder.Extensions.AddIfNotAlready<TExtension>();
         }
 
         /// <summary>
         /// Adds the specified extension instance to the extensions collection.
         /// </summary>
-        public MarkdownPipelineBuilder Use<TExtension>(TExtension extension) where TExtension : class, IMarkdownExtension
+        public void Use<TExtension>(TExtension extension) where TExtension : class, IMarkdownExtension
         {
-            PipelineBuilder.Extensions.AddIfNotAlready(extension);
-            return PipelineBuilder;
+            _pipelineBuilder.Extensions.AddIfNotAlready(extension);
         }
 
         public bool Parse(ref string source)
         {
-            if(_pipeline == null)
+            if (_pipeline == null)
             {
-                _pipeline = PipelineBuilder.Build();
+                _pipeline = _pipelineBuilder.UseAdvancedExtensions().Build();
             }
 
-            source = Markdown.ToHtml(source, _pipeline);
+            using (var writer = new StringWriter())
+            {
+                var renderer = new HtmlRenderer(writer);
+                _pipeline.Setup(renderer);
+
+                var doc = Markdown.Parse(source, _pipeline);
+
+                renderer.Render(doc);
+
+                writer.Flush();
+                
+                source = writer.ToString();
+            }
 
             return true;
         }

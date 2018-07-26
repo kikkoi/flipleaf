@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Fluid;
@@ -27,15 +28,18 @@ namespace FlipLeaf.Core.Text.FluidLiquid
             return template;
         }
 
-        public TemplateContext PrepareContext(object pageContext)
+        public TemplateContext PrepareContext(InputItems pageContext)
         {
             TemplateContext context = null;
 
             context = new TemplateContext { MemberAccessStrategy = new IgnoreCaseMemberAccessStrategy() };
+            context.Filters.AddAsyncFilter("relative_url", FlipLeafFilters.RelativeUrl);
             context.FileProvider = new FlipLeafFileProvider(_ctx);
             context.MemberAccessStrategy.Register<SiteConfiguration>();
+            context.MemberAccessStrategy.Register<StaticSite>();
             context.SetValue("page", pageContext);
-            context.SetValue("site", _ctx);
+            context.SetValue("site", _ctx.Runtime);
+
 
             return context;
         }
@@ -80,7 +84,7 @@ namespace FlipLeaf.Core.Text.FluidLiquid
         private async Task<ViewTemplate> CreateLayout(string fileName)
         {
             string layoutText;
-            using (var reader = new StreamReader(Path.Combine(_ctx.InputDirectory, _ctx.Configuration.LayoutDir, fileName)))
+            using (var reader = new StreamReader(Path.Combine(_ctx.GetFullRootPath(_ctx.Configuration.LayoutDir), fileName)))
             {
                 layoutText = await reader.ReadToEndAsync().ConfigureAwait(false);
             }

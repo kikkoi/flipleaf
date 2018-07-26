@@ -20,6 +20,6 @@
         /// <summary>
         /// Gets the global context of the site.
         /// </summary>
-        IStaticSite FlipContext { get; }
+        IStaticSite Site { get; }
     }
 }

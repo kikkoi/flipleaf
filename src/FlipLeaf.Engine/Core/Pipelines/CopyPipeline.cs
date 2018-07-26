@@ -1,10 +1,14 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 
-namespace FlipLeaf.Core.Transforms
+namespace FlipLeaf.Core.Pipelines
 {
-    public class CopyTransform : IInputTransform
+    public class CopyPipeline : IPipeline
     {
+        public bool Accept(IStaticSite ctx, IInput input) => true;
+
+        public Task<InputItems> PrepareAsync(IStaticSite site, IInput input) => Task.FromResult(InputItems.Empty);
+
         public async Task TransformAsync(IStaticSite ctx, IInput input)
         {
             var origin = input.GetFullInputPath(ctx);

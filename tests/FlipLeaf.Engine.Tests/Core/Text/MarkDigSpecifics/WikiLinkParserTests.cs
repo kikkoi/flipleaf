@@ -20,6 +20,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
 
             Assert.True(b);
             Assert.Equal("Hello.html", link.Url);
+
             Assert.Equal("Hello", GetSpanText(md, link.UrlSpan));
         }
 
@@ -32,6 +33,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
 
             Assert.True(b);
             Assert.Equal("Hello", link.Label);
+
             Assert.Equal("Hello", GetSpanText(md, link.LabelSpan));
         }
 
@@ -44,6 +46,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
 
             Assert.True(b);
             Assert.Equal("Hello.html", link.Url);
+
             Assert.Equal("Hello", GetSpanText(md, link.UrlSpan));
             Assert.Equal("World", link.Label);
             Assert.Equal("World", GetSpanText(md, link.LabelSpan));
@@ -58,13 +61,14 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
 
             Assert.True(b);
             Assert.Equal("Foo_Bar.html", link.Url);
+
             Assert.Equal("Foo Bar", GetSpanText(md, link.UrlSpan));
             Assert.Equal("Foo Bar", link.Label);
             Assert.Equal("Foo Bar", GetSpanText(md, link.LabelSpan));
         }
 
         [Fact]
-        public void Adapt_Url_With_Tiret()
+        public void Adapt_Url_With_Dash()
         {
             var md = "[[Foo Bar]]";
 
@@ -72,6 +76,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
 
             Assert.True(b);
             Assert.Equal("Foo-Bar.html", link.Url);
+
             Assert.Equal("Foo Bar", GetSpanText(md, link.UrlSpan));
             Assert.Equal("Foo Bar", link.Label);
             Assert.Equal("Foo Bar", GetSpanText(md, link.LabelSpan));
@@ -151,6 +156,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
 
             Assert.True(b);
             Assert.Equal("Texts", link.Label);
+
             Assert.Equal("Text", GetSpanText(md, link.LabelSpan));
             Assert.Equal("Text.html", link.Url);
             Assert.Equal("Text", GetSpanText(md, link.UrlSpan));
@@ -169,7 +175,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
         }
 
         [Fact]
-        public void Exclude_Trailing_Apostrophe()
+        public void Include_Trailing_Apostrophe()
         {
             var md = "[[Text]]'s";
 
@@ -181,7 +187,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
         }
 
         [Fact]
-        public void Ignore_Trailing_When_Separator()
+        public void Ignore_Trailing_When_Explicit_Text()
         {
             var md = "[[Url|Text]]'s";
 
@@ -229,7 +235,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
             var pr = BuidProcessor();
             var sl = new StringSlice(markdown);
 
-            var p = new WikiLinkParser();
+            var p = new WikiLinkParser() { Extension = ".html" };
             if (includeTrailingCharacters != null) p.IncludeTrailingCharacters = includeTrailingCharacters.Value;
             if (whiteSpaceUrlChar != null) p.WhiteSpaceUrlChar = whiteSpaceUrlChar.Value;
 

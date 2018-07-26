@@ -15,7 +15,7 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
             OpeningCharacters = new[] { '[' };
         }
 
-        public string Extension { get; set; } = ".html";
+        public string Extension { get; set; }
 
         public bool IncludeTrailingCharacters { get; set; } = false;
 
@@ -137,17 +137,39 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
                     url = label;
                     urlSpan = labelSpan;
 
-                    // cleanup label if necessary
-                    var i = label.IndexOf('/');
-                    if (i == label.Length - 1)
+                    // keep only the page name
+                    var lastSegment = label.LastIndexOf('/');
+                    if (lastSegment != -1)
                     {
-                        // label ends with a 
+                        label = label.Substring(lastSegment + 1);
+                    }
+
+                    // remove any hash
+                    var hash = label.LastIndexOf('#');
+                    if (hash != -1)
+                    {
+                        label = label.Substring(0, hash);
                     }
                 }
 
                 if (label == null)
                 {
                     label = url;
+
+                    // keep only the page name
+                    var lastSegment = label.LastIndexOf('/');
+                    if (lastSegment != -1)
+                    {
+                        label = label.Substring(lastSegment + 1);
+                    }
+
+                    // remove any hash
+                    var hash = label.LastIndexOf('#');
+                    if (hash != -1)
+                    {
+                        label = label.Substring(0, hash);
+                    }
+
                     labelSpan = urlSpan;
                 }
 
@@ -156,7 +178,10 @@ namespace FlipLeaf.Core.Text.MarkdigSpecifics
                 {
                     // adapt relative url
                     url = Regex.Replace(url, "[ ]", $"{WhiteSpaceUrlChar}");
-                    url += Extension;
+                    if (!string.IsNullOrEmpty(Extension))
+                    {
+                        url += Extension;
+                    }
                 }
 
                 var link = new LinkInline()

@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 namespace FlipLeaf.Core.Text
 {
 
-    public class YamlHeaderMiddleware : ITextMiddleware
+    public class YamlHeaderPrepareMiddleware : ITextMiddleware
     {
         private readonly YamlParser _yaml;
 
-        public YamlHeaderMiddleware(YamlParser yaml) => _yaml = yaml;
+        public YamlHeaderPrepareMiddleware(YamlParser yaml) => _yaml = yaml;
 
         public async Task InvokeAsync(TextInputContext ctx, TextMiddlewareAsyncDelegate next)
         {
@@ -36,6 +36,7 @@ namespace FlipLeaf.Core.Text
                     ctx.Items[key] = pageContext[key];
                 }
             }
+
 
             await next().ConfigureAwait(false);
         }

@@ -8,7 +8,10 @@ namespace FlipLeaf.Core.Inputs
         {
             RelativeName = relativeName;
             Path = path;
+            Extension = System.IO.Path.GetExtension(path);
         }
+
+        public string Extension { get; }
 
         public string RelativeName { get; }
 

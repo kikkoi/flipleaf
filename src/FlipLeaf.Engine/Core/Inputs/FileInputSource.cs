@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -8,57 +9,32 @@ namespace FlipLeaf.Core.Inputs
     {
         private static readonly string[] WildcardPattern = new[] { "*" };
         private readonly string[] _patterns;
-        private readonly string _subDir;
-        private readonly bool _recursive;
+        private readonly string _path;
 
-        /// <summary>
-        /// Initialize a new <see cref="FileInputSource"/> which takes all files in all directories recursively.
-        /// </summary>
-        public FileInputSource()
-            : this(WildcardPattern, true)
+        public FileInputSource(string path)
+            : this(path, WildcardPattern)
         {
         }
 
-        /// <summary>
-        /// Initialize a new <see cref="FileInputSource"/> which takes all files.
-        /// </summary>
-        public FileInputSource(bool recursive)
-            : this(WildcardPattern, recursive)
+        public FileInputSource(string path, string pattern)
+            : this(path, new[] { pattern })
         {
         }
 
-        /// <summary>
-        /// Initialize a new <see cref="FileInputSource"/> which takes all files matching <paramref name="patterns"/>.
-        /// </summary>
-        public FileInputSource(string[] patterns, bool recursive)
+        public FileInputSource(string path, string[] patterns)
         {
-            _patterns = patterns;
-            _recursive = recursive;
+
+            _path = path;
+            _patterns = patterns ?? throw new ArgumentNullException(nameof(patterns));
         }
 
-        /// <summary>
-        /// Initialize a new <see cref="FileInputSource"/> which takes all files matching <paramref name="patterns"/> in specific <paramref name="subDir"/>.
-        /// </summary>
-        public FileInputSource(string subDir, string[] patterns, bool recursive)
-        {
-            _subDir = subDir;
-            _patterns = patterns;
-            _recursive = recursive;
-        }
+        public string[] Exclude { get; set; }
+
+        public bool Recursive { get; set; } = true;
 
         public IEnumerable<IInput> Get(IStaticSite context)
         {
-            DirectoryInfo dir;
-
-            if (!string.IsNullOrEmpty(_subDir))
-            {
-                dir = new DirectoryInfo(Path.Combine(context.InputDirectory, _subDir));
-            }
-            else
-            {
-                dir = new DirectoryInfo(Path.Combine(context.InputDirectory));
-            }
-
+            var dir = new DirectoryInfo(Path.Combine(context.RootDirectory, _path));
             if (!dir.Exists)
             {
                 return Enumerable.Empty<IInput>();
@@ -75,6 +51,11 @@ namespace FlipLeaf.Core.Inputs
                 {
                     if (root)
                     {
+                        if (Exclude != null && Exclude.Contains(file.Name, StringComparer.Ordinal))
+                        {
+                            continue;
+                        }
+
                         yield return new FileInput(file.Name, file.FullName);
                     }
                     else
@@ -85,21 +66,13 @@ namespace FlipLeaf.Core.Inputs
                 }
             }
 
-            if (_recursive)
+            if (Recursive)
             {
                 foreach (var subDir in dir.GetDirectories())
                 {
                     if (root)
                     {
-                        // ignore special folders
-                        // TODO better management
-                        if (string.Equals(subDir.FullName, context.GetFullInputPath(context.Configuration.LayoutDir), System.StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        // ignore output dir
-                        if (string.Equals(subDir.FullName, context.GetFullOutputPath(null), System.StringComparison.OrdinalIgnoreCase))
+                        if (Exclude != null && Exclude.Contains(subDir.Name, StringComparer.Ordinal))
                         {
                             continue;
                         }

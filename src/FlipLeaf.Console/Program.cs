@@ -21,29 +21,38 @@ namespace FlipLeaf
                 var site = inputDir.HasValue() ? new StaticSite(inputDir.Value()) : new StaticSite();
                 site.LoadConfiguration();
 
+                // todo apply command-line args to runtime
+
+                // configure content source
+                var contentSource = new Core.Inputs.FileInputSource(site.InputDirectory) { Exclude = new[] { "README.md" } };
+
+                // configure static source
+                var staticsource = new Core.Inputs.FileInputSource(site.GetFullRootPath("_static"));
+
                 // setup markdown processing pipeline
                 var parser = new Core.Text.MarkdigSpecifics.MarkdigParser();
-                parser.Use<Core.Text.MarkdigSpecifics.WikiLinkExtension>();
-                site.Pipelines.Add(
-                    new Core.Pipelines.TransformPipeline(
-                        new Core.Inputs.FileInputSource(new[] { "*.md" }, true),
-                        new Core.Transforms.TextTransform(
-                            new Core.Text.WriteContentMiddleware() { Extension = ".html" },
-                            new Core.Text.ReadContentMiddleware(),
-                            new Core.Text.YamlHeaderMiddleware(new Core.Text.YamlParser()),
-                            new Core.Text.LiquidMiddleware(new Core.Text.FluidLiquid.FluidParser(site)),
-                            new Core.Text.MarkdownMiddleware(parser)
-                        )
-                    )
-                );
+                parser.Use(new Core.Text.MarkdigSpecifics.WikiLinkExtension() { Extension = ".md" });
+                parser.Use(new Core.Text.MarkdigSpecifics.CustomLinkInlineRendererExtension(site));
+                site.AddPipeline(contentSource, new Core.Pipelines.TextTransformPipeline(
+                    i => i.Extension == ".md",
+                    // read
+                    new Core.Text.ReadContentMiddleware(),
+                    // prepare
+                    new Core.Text.ITextMiddleware[] {
+                        new Core.Text.YamlHeaderMiddleware(new Core.Text.YamlParser())
+                    },
+                    // transform
+                    new Core.Text.ITextMiddleware[] {
+                        new Core.Text.YamlHeaderMiddleware(new Core.Text.YamlParser()),
+                        new Core.Text.LiquidMiddleware(new Core.Text.FluidLiquid.FluidParser(site)),
+                        new Core.Text.MarkdownMiddleware(parser)
+                    },
+                    // write
+                    new Core.Text.WriteContentMiddleware() { Extension = ".html" }
+                ));
 
                 // setup static files pipeline
-                site.Pipelines.Add(
-                    new Core.Pipelines.TransformPipeline(
-                        new Core.Inputs.FileInputSource("_static", new[] { "*" }, true),
-                        new Core.Transforms.CopyTransform()
-                    )
-                );
+                site.AddPipeline(staticsource, new Core.Pipelines.CopyPipeline());
 
                 // generate
                 await site.GenerateAsync();

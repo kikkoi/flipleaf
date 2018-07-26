@@ -8,6 +8,8 @@ namespace FlipLeaf.Core
     /// </summary>
     public interface IInput
     {
+        string Extension { get; }
+
         /// <summary>
         /// Gets the name of the input, relative to the site root, including directories.
         /// </summary>

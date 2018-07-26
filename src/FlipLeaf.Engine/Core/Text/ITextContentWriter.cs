@@ -4,6 +4,6 @@ namespace FlipLeaf.Core.Text
 {
     public interface ITextContentWriter
     {
-        Task InvokeAsync(ITextInputContext ctx);
+        Task InvokeAsync(TextInputContext ctx);
     }
 }

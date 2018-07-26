@@ -26,7 +26,7 @@ namespace FlipLeaf.Core.Text.FluidLiquid
                 subpath = subpath.Substring(0, subpath.Length - ".liquid".Length);
             }
 
-            var fullPath = Path.Combine(_site.InputDirectory, "_includes", subpath);
+            var fullPath = Path.Combine(_site.GetFullRootPath("_includes"), subpath);
 
             if (File.Exists(fullPath))
                 return new IncludeFileInfo(fullPath);

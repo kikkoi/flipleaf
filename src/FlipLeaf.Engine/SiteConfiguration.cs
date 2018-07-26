@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 
 namespace FlipLeaf
 {
@@ -12,9 +13,13 @@ namespace FlipLeaf
 
         public string Title { get; set; }
 
+        public string InputDir { get; set; }
+
         public string LayoutDir { get; set; } = DefaultLayoutsDir;
 
         public string OutputDir { get; set; } = DefaultOutputDir;
+
+        public string BaseUrl { get; set; } = string.Empty;
 
         public static SiteConfiguration LoadFromDisk(string path)
         {
@@ -24,6 +29,15 @@ namespace FlipLeaf
             }
 
             return null;
+        }
+
+        public void ApplyTo(IDictionary<string, object> target)
+        {
+            target["title"] = Title;
+            target["inputDir"] = InputDir;
+            target["baseUrl"] = BaseUrl;
+            target["layoutDir"] = LayoutDir;
+            target["outputDir"] = OutputDir;
         }
     }
 }

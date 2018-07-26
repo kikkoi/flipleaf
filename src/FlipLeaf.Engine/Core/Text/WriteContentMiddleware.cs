@@ -7,7 +7,7 @@ namespace FlipLeaf.Core.Text
     {
         public string Extension { get; set; }
 
-        public async Task InvokeAsync(ITextInputContext ctx)
+        public async Task InvokeAsync(TextInputContext ctx)
         {
             if (ctx.Content == null)
             {
@@ -25,7 +25,7 @@ namespace FlipLeaf.Core.Text
                     outputName = outputName.Substring(0, outputName.Length - ext.Length) + Extension;
                 }
 
-                ctx.OutputPath = ctx.FlipContext.GetFullOutputPath(outputName);
+                ctx.OutputPath = ctx.Site.GetFullOutputPath(outputName);
             }
 
             // ensure output directory

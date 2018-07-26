@@ -17,13 +17,12 @@ namespace FlipLeaf.Core.Text
             _deserializer = new DeserializerBuilder().Build();
         }
 
-        public bool ParseHeader(ref string source, out object pageContext)
+        public bool ParseHeader(ref string source, out Dictionary<string, object> pageContext)
         {
             var input = new StringReader(source);
 
             var parser = new Parser(input);
             pageContext = null;
-
 
             int i;
             parser.Expect<StreamStart>();
@@ -35,7 +34,12 @@ namespace FlipLeaf.Core.Text
 
             var doc = _deserializer.Deserialize(parser);
 
-            pageContext = ConvertDoc(doc);
+            if (doc == null)
+            {
+                return false;
+            }
+
+            pageContext = (Dictionary<string, object>)ConvertDoc(doc);
 
             if (!parser.Accept<DocumentStart>())
             {

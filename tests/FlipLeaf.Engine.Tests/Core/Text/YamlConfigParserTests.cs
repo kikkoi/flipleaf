@@ -16,7 +16,7 @@ namespace FlipLeaf.Core.Text
             var config = new YamlConfigParser().ParseConfig(reader);
 
             // assert
-            Assert.Equal(SiteConfiguration.Default.BasePath, config.BasePath);
+            Assert.Equal(SiteConfiguration.Default.BaseUrl, config.BaseUrl);
             Assert.Equal(SiteConfiguration.Default.LayoutDir, config.LayoutDir);
             Assert.Equal(SiteConfiguration.Default.OutputDir, config.OutputDir);
             Assert.Equal(SiteConfiguration.Default.Title, config.Title);
@@ -32,7 +32,7 @@ namespace FlipLeaf.Core.Text
             var config = new YamlConfigParser().ParseConfig(reader);
 
             // assert
-            Assert.Equal(SiteConfiguration.Default.BasePath, config.BasePath);
+            Assert.Equal(SiteConfiguration.Default.BaseUrl, config.BaseUrl);
             Assert.Equal(SiteConfiguration.Default.LayoutDir, config.LayoutDir);
             Assert.Equal(SiteConfiguration.Default.OutputDir, config.OutputDir);
             Assert.Equal(SiteConfiguration.Default.Title, config.Title);
@@ -48,7 +48,7 @@ namespace FlipLeaf.Core.Text
             var config = new YamlConfigParser().ParseConfig(reader);
 
             // assert
-            Assert.Equal("test", config.BasePath);
+            Assert.Equal("test", config.BaseUrl);
         }
 
         [Fact]

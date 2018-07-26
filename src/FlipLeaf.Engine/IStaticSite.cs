@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+
 using FlipLeaf.Core;
 
 namespace FlipLeaf
@@ -8,15 +9,29 @@ namespace FlipLeaf
     {
         SiteConfiguration Configuration { get; }
 
+        string RootDirectory { get; }
+
         string InputDirectory { get; }
 
         string OutputDirectory { get; }
 
-        IList<IPipeline> Pipelines { get; }
+        IDictionary<string, object> Runtime { get; }
+
+        void AddPipeline(IInputSource source, IPipeline pipeline);
     }
 
     public static class StaticSiteExtensions
     {
+        public static string GetFullRootPath(this IStaticSite @this, string path)
+        {
+            if (path == null)
+            {
+                return @this.RootDirectory;
+            }
+
+            return Path.Combine(@this.RootDirectory, path);
+        }
+
         public static string GetFullInputPath(this IStaticSite @this, string path)
         {
             if (path == null)
